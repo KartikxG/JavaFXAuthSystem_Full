@@ -19,3 +19,7 @@ This is a JavaFX-based user authentication system that includes:
 - JavaFX SDK
 - MySQL Server
 - JDBC Driver
+- ## TEAM MEMBERS:-
+- KARTIKEY GAUR(Leader)
+- Sreeman Narayan
+- Abhishek Solanki
