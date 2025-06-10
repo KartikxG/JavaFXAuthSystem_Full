@@ -1,18 +1,18 @@
 package ui;
 
+import dao.UserDAO;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import utils.DbUtil;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-
+/**
+ * Controller for the Login UI, handling login, reset, and register navigation.
+ */
 public class LoginController {
 
     @FXML
@@ -21,43 +21,67 @@ public class LoginController {
     @FXML
     private PasswordField passwordField;
 
+    private UserDAO userDAO = new UserDAO();
+
+    /**
+     * Handles login button action with validation and authentication.
+     */
     @FXML
     private void handleLogin() {
-        String username = usernameField.getText();
+        String username = usernameField.getText().trim();
         String password = passwordField.getText();
 
-        try (Connection conn = DbUtil.getConnection()) {
-            String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setString(1, username);
-            stmt.setString(2, password);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                System.out.println("Login successful!");
+        if (username.isEmpty() || password.isEmpty()) {
+            showAlert(Alert.AlertType.ERROR, "Username and password are required.");
+            return;
+        }
+
+        try {
+            if (userDAO.validateUser(username, password)) {
+                showAlert(Alert.AlertType.INFORMATION, "Login successful!");
+                // Redirect to a dashboard or main app screen (not implemented)
             } else {
-                System.out.println("Login failed.");
+                showAlert(Alert.AlertType.ERROR, "Invalid username or password.");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Login failed: " + e.getMessage());
         }
     }
 
+    /**
+     * Clears the input fields on reset button click.
+     */
     @FXML
     private void handleReset() {
         usernameField.clear();
         passwordField.clear();
     }
 
+    /**
+     * Opens the registration window.
+     */
     @FXML
     private void handleShowRegister() {
         try {
             Parent registerRoot = FXMLLoader.load(getClass().getResource("/ui/Register.fxml"));
             Stage stage = new Stage();
             stage.setTitle("Register");
-            stage.setScene(new Scene(registerRoot, 400, 250));
+            stage.setScene(new Scene(registerRoot, 400, 300));
             stage.show();
         } catch (Exception e) {
-            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Failed to open registration: " + e.getMessage());
         }
+    }
+
+    /**
+     * Displays an alert dialog with the specified type and message.
+     * @param type The type of alert (e.g., ERROR, INFORMATION).
+     * @param message The message to display.
+     */
+    private void showAlert(Alert.AlertType type, String message) {
+        Alert alert = new Alert(type);
+        alert.setContentText(message);
+        alert.setHeaderText(null);
+        alert.showAndWait();
     }
 }
